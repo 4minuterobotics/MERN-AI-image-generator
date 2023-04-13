@@ -26,8 +26,8 @@ const CreatePost = () => {
 
 				// code to send a post request to the dalle back end
 				// http://localhost:8081/api/v1/dalle for local developer backend 
-				// https://image-generator-backend-c9nm.onrender.com/api/v1/dalle for remote backend
-				const response = await fetch("https://image-generator-backend-c9nm.onrender.com/api/v1/dalle", { 
+				// https://mern-image-generator-backend.onrender.com/api/v1/dalle for remote backend
+				const response = await fetch("https://mern-image-generator-backend.onrender.com/api/v1/dalle", { 
 					// go to this api and submit the following info
 					method: "POST", //method type
 					headers: {
@@ -62,8 +62,8 @@ const CreatePost = () => {
 
 				// send post request to the following api, containing the following parameters
 				// http://localhost:8081/api/v1/post for local backend
-				// https://image-generator-backend-c9nm.onrender.com/api/v1/post for remote backend
-				const response = await fetch("https://image-generator-backend-c9nm.onrender.com/api/v1/post", {
+				// https://mern-image-generator-backend.onrender.com/api/v1/post for remote backend
+				const response = await fetch("https://mern-image-generator-backend.onrender.com/api/v1/post", {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",

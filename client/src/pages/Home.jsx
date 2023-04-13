@@ -45,8 +45,8 @@ const Home = () => {
 			try {
 
 				// http://localhost:8081/api/v1/post for local server
-				// https://image-generator-backend-c9nm.onrender.com/api/v1/post for remote server
-				const response = await fetch("https://image-generator-backend-c9nm.onrender.com/api/v1/post", {
+				// https://mern-image-generator-backend.onrender.com/api/v1/post for remote server
+				const response = await fetch("https://mern-image-generator-backend.onrender.com/api/v1/post", {
 					method: "GET",
 					headers: {
 						"Content-Type": "appplication.json",
