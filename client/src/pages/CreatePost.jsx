@@ -22,7 +22,6 @@ const CreatePost = () => {
 			//if we have a promt
 			try {
 				setGeneratingImg(true); //set the image generating state to be true
-				console.log("line beore error");
 
 				// code to send a post request to the dalle back end
 				// http://localhost:8081/api/v1/dalle for local developer backend 
@@ -71,8 +70,6 @@ const CreatePost = () => {
 					body: JSON.stringify(form),
 				});
 				await response.json(); //this means we got the response successfuly
-				console.log("The response received by handle submit was ...");
-				console.log(response);
 				navigate("/"); //navigate back to the home page
 			} catch (error) {
 				toast.error("Try re-freshing the page.");
