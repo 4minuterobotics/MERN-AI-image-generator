@@ -36,11 +36,13 @@ postRoutes.route("/").post(async (req, res) => {
 
 		const photoUrl = await cloudinary.uploader.upload(photo); //upload the photo to cloudinary and create a link to it
 		console.log("made it past body cloudinay upload");
+		console.log(photoUrl);
 		const newPost = await Post.create({
 			//add the data from and the cloudinary link to mongo database
 			name,
 			prompt,
-			photo: photoUrl.url,
+			// photo: photoUrl.url,
+			photo: `http://res.cloudinary.com/doj10wtzk/image/upload/t_drew-it-optimization/${photoUrl.public_id}.png`,
 		});
 
 		res.status(201).json({ success: true, data: newPost });
@@ -51,4 +53,6 @@ postRoutes.route("/").post(async (req, res) => {
 		console.log("response from database save is an error");
 	}
 });
+
 export default postRoutes;
+
