@@ -39,14 +39,14 @@ const App = () => {
 				<div>
 					<Link to="/">
 						<img src={willLogo} alt="logo" className="w-16 object-contain"/>
-						<span className="font-bold text-[#222328] text-[25px]">{' '}Drew It</span>
+						<span className="font-bold text-[#222328] text-[25px] whitespace-nowrap">{' '}Drew It</span>
 					</Link>
 				</div>
 				<div className="flex justify-between">
 					{userInfo ? (
-						<Link to="#signout" className="text-black px-4 mx-6 py-2" onClick={signoutHandler}> Sign Out </Link>
+						<Link to="#signout" className="text-black px-4 mx-6 py-2 whitespace-nowrap" onClick={signoutHandler}> Sign Out </Link>
 						):(
-						<Link to="/signin" className="text-black px-4 mx-6 py-2"> Sign In </Link>
+						<Link to="/signin" className="text-black px-4 mx-6 py-2 whitespace-nowrap"> Sign In </Link>
 						)}
 						
 					<Link to="/create-post" className="front-medium bg-[#6469ff] text-white px-4 py-2 rounded-md">
