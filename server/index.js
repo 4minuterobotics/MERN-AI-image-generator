@@ -5,6 +5,7 @@ import cors from "cors";
 import connectDB from "./mongodb/connect.js";
 import postRoutes from "./routes/postRoutes.js";
 import dalleRoutes from "./routes/dalleRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 //to be able to use the dotenv variables..
 dotenv.config();
@@ -15,11 +16,13 @@ const app = express();
 //set up some middlewares
 app.use(cors()); //this will allow us to make cross origin requests and allow our server to be called from the fornt end
 app.use(express.json({ limit: "50mb" })); //this will allow us to pass json from the front end to the back end with a limit of 50 mb
+app.use(express.urlencoded({extended: true}));
 
 // api endpoints that we can connect and hook onto from the font end side
 // ...... (get request route, action)
 app.use("/api/v1/post", postRoutes);
 app.use("/api/v1/dalle", dalleRoutes);
+app.use("/api/v1/user", userRoutes);
 
 ///the response from '/' get requests
 app.get("/", async (req, res) => {
