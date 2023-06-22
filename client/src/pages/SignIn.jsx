@@ -27,13 +27,13 @@ const SignIn = () => {
   const submitHandler = async(e) => {
     e.preventDefault();
     try{
-
+        console.log("signing fetch began")
         // http://localhost:8081/api/v1/user/signin for local server
         // https://mern-image-generator-backend.onrender.com/api/v1/user/signin for remote server
         const response = await fetch("https://mern-image-generator-backend.onrender.com/api/v1/user/signin", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "appplication/json",
             },
             body: JSON.stringify({
                 email: email,
