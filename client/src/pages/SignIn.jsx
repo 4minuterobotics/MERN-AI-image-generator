@@ -34,7 +34,7 @@ const SignIn = () => {
         const response = await fetch("https://mern-ai-image-generator-backend.vercel.app/api/v1/user/signin", {
             method: "POST",
             headers: {
-                "Content-Type": "appplication/json",
+                "Content-Type": "application/json",
             },
             body: JSON.stringify({
                 email: email,
