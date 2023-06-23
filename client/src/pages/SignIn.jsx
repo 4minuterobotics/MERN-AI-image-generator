@@ -35,6 +35,7 @@ const SignIn = () => {
             method: "POST",
             headers: {
                 "Content-Type": "appplication/json",
+                "Access-Control-Allow-Origin": "https://drew-it-git-main-4minuterobotics.vercel.app"
             },
             body: JSON.stringify({
                 email: email,
