@@ -79,7 +79,7 @@ const SignIn = () => {
       <Helmet> <title>Sign In</title> </Helmet>
       <PageAnimation>
         <Container className = "max-w-2xl">
-          <h1 className="my-3">Sign In</h1>
+          <h1 className="my-3 font-bold text-[#222328] text-[20px] text-center">Sign In</h1>
           <Form onSubmit={submitHandler}>
             <Form.Group className="mb-3" controlId="email">
               <Form.Label>Email</Form.Label>
