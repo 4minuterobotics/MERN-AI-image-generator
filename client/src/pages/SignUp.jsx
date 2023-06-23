@@ -32,8 +32,9 @@ const SignUp = () => {
     try{
 
         // http://localhost:8081/api/v1/user/signup for local server  
-        // https://mern-image-generator-backend.onrender.com/api/v1/user/signup for remote server
-        const response = await fetch("https://mern-image-generator-backend.onrender.com/api/v1/user/signup", {
+        // https://mern-image-generator-backend.onrender.com/api/v1/user/signup for render server
+        // https://mern-ai-image-generator-backend.vercel.app/api/v1/user/signup for vercel server
+        const response = await fetch("https://mern-ai-image-generator-backend.vercel.app/api/v1/user/signup", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

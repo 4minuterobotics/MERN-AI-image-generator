@@ -29,8 +29,9 @@ const SignIn = () => {
     try{
         console.log("signing fetch began")
         // http://localhost:8081/api/v1/user/signin for local server
-        // https://mern-image-generator-backend.onrender.com/api/v1/user/signin for remote server
-        const response = await fetch("https://mern-image-generator-backend.onrender.com/api/v1/user/signin", {
+        // https://mern-image-generator-backend.onrender.com/api/v1/user/signin for render server
+        // https://mern-ai-image-generator-backend.vercel.app/api/v1/user/signin for vercel server
+        const response = await fetch("https://mern-ai-image-generator-backend.vercel.app/api/v1/user/signin", {
             method: "POST",
             headers: {
                 "Content-Type": "appplication/json",
