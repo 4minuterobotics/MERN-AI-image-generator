@@ -1,8 +1,8 @@
-import express from "express";
-import * as dotenv from "dotenv";
-import { v2 as cloudinary } from "cloudinary";
+import express from 'express';
+import * as dotenv from 'dotenv';
+import { v2 as cloudinary } from 'cloudinary';
 
-import Post from "../mongodb/models/post.js";
+import Post from '../mongodb/models/post.js';
 
 dotenv.config();
 
@@ -16,9 +16,9 @@ cloudinary.config({
 });
 
 //GET ALL POSTS FROM CLOUDINARY
-postRoutes.route("/").get(async (req, res) => {
+postRoutes.route('/').get(async (req, res) => {
 	try {
-		console.log("generating a photo");
+		console.log('generating a photo');
 		const posts = await Post.find({});
 
 		res.status(200).json({ success: true, data: posts });
@@ -28,14 +28,14 @@ postRoutes.route("/").get(async (req, res) => {
 });
 
 //CREATE A POST ON CLOUDINARY USING DATA FROM THE FROM FRONT END and store the link in the mongodb Database
-postRoutes.route("/").post(async (req, res) => {
-	console.log("about to make a new document i think");
+postRoutes.route('/').post(async (req, res) => {
+	console.log('about to make a new document i think');
 
 	try {
 		const { name, prompt, photo } = req.body; //get the body of the form containing the photo, prompt, and name
 
 		const photoUrl = await cloudinary.uploader.upload(photo); //upload the photo to cloudinary and create a link to it
-		console.log("made it past body cloudinay upload");
+		console.log('made it past body cloudinay upload');
 		console.log(photoUrl);
 		const newPost = await Post.create({
 			//add the data from and the cloudinary link to mongo database
@@ -46,13 +46,12 @@ postRoutes.route("/").post(async (req, res) => {
 		});
 
 		res.status(201).json({ success: true, data: newPost });
-		console.log("the newPost._id is");
+		console.log('the newPost._id is');
 		console.log(newPost._id);
 	} catch (error) {
 		res.status(500).json({ success: false, message: error });
-		console.log("response from database save is an error");
+		console.log('response from database save is an error');
 	}
 });
 
 export default postRoutes;
-
