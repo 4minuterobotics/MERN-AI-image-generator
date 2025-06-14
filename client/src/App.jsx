@@ -25,7 +25,7 @@ const backendDomains = {
 };
 
 // const currentBackendDomain = backendDomains.local;
-const currentBackendDomain = import.meta.env.VITE_LOCAL_DOMAIN;
+const currentBackendDomain = import.meta.env.VITE_VERCEL_DOMAIN;
 
 const App = () => {
 	const { state, dispatch: ctxDispatch } = useContext(AppState);
