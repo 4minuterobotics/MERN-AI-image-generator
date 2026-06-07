@@ -3,54 +3,61 @@ import * as dotenv from 'dotenv';
 import { v2 as cloudinary } from 'cloudinary';
 
 import Post from '../mongodb/models/post.js';
+import { postLimiter, cleanString } from '../middleware/security.js';
 
 dotenv.config();
 
 const postRoutes = express.Router();
 
-// all the access codes necessary to post to cloudinary
+const NAME_MAX = 100;
+const PROMPT_MAX = 500;
+const PHOTO_MAX_BYTES = 11_000_000; // ~8 MB image after base64 inflation; matches 12mb body limit with headroom
+
 cloudinary.config({
 	cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
 	api_key: process.env.CLOUDINARY_API_KEY,
 	api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-//GET ALL POSTS FROM CLOUDINARY
 postRoutes.route('/').get(async (req, res) => {
 	try {
-		console.log('generating a photo');
 		const posts = await Post.find({});
-
 		res.status(200).json({ success: true, data: posts });
 	} catch (error) {
-		res.status(500).json({ success: false, message: error });
+		res.status(500).json({ success: false, message: 'Failed to load posts.' });
 	}
 });
 
-//CREATE A POST ON CLOUDINARY USING DATA FROM THE FROM FRONT END and store the link in the mongodb Database
-postRoutes.route('/').post(async (req, res) => {
-	console.log('about to make a new document i think');
-
+postRoutes.route('/').post(postLimiter, async (req, res) => {
 	try {
-		const { name, prompt, photo } = req.body; //get the body of the form containing the photo, prompt, and name
+		const name = cleanString(req.body?.name);
+		const prompt = cleanString(req.body?.prompt);
+		const photo = req.body?.photo;
 
-		const photoUrl = await cloudinary.uploader.upload(photo); //upload the photo to cloudinary and create a link to it
-		console.log('made it past body cloudinay upload');
-		console.log(photoUrl);
+		if (name.length === 0 || name.length > NAME_MAX) {
+			return res.status(400).json({ success: false, error: `Name must be 1-${NAME_MAX} characters.` });
+		}
+		if (prompt.length === 0 || prompt.length > PROMPT_MAX) {
+			return res.status(400).json({ success: false, error: `Prompt must be 1-${PROMPT_MAX} characters.` });
+		}
+		if (typeof photo !== 'string' || !photo.startsWith('data:image/')) {
+			return res.status(400).json({ success: false, error: 'Invalid photo format.' });
+		}
+		if (photo.length > PHOTO_MAX_BYTES) {
+			return res.status(400).json({ success: false, error: 'Photo too large.' });
+		}
+
+		const photoUrl = await cloudinary.uploader.upload(photo);
 		const newPost = await Post.create({
-			//add the data from and the cloudinary link to mongo database
 			name,
 			prompt,
-			// photo: photoUrl.url,
 			photo: `http://res.cloudinary.com/doj10wtzk/image/upload/t_drew-it-optimization/${photoUrl.public_id}.png`,
 		});
 
 		res.status(201).json({ success: true, data: newPost });
-		console.log('the newPost._id is');
-		console.log(newPost._id);
 	} catch (error) {
-		res.status(500).json({ success: false, message: error });
-		console.log('response from database save is an error');
+		console.error('post create error:', error?.message);
+		res.status(500).json({ success: false, error: 'Failed to save post.' });
 	}
 });
 

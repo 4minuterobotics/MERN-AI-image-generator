@@ -3,21 +3,32 @@ import * as dotenv from 'dotenv';
 import axios from 'axios';
 import FormData from 'form-data';
 
+import { generateLimiter, cleanString } from '../middleware/security.js';
+
 dotenv.config();
 
 const dalleRoutes = express.Router();
 
-//this dummy route was created to see if we had a connection with open AI by going to localhost:8080/api/v1/dalle
+const PROMPT_MAX = 500;
+const PROMPT_MIN = 1;
+
 dalleRoutes.route('/').get((req, res) => {
 	res.send('Hello from dalle!');
-	console.log('connected to dalle');
 });
 
-//this is the actual post to be sent to dalle for it to interpret and use to send an image back
-dalleRoutes.route('/').post(async (req, res) => {
-	console.log('made it here?');
+dalleRoutes.route('/').post(generateLimiter, async (req, res) => {
 	try {
-		const { prompt } = req.body;
+		const promptRaw = req.body?.prompt;
+
+		if (typeof promptRaw !== 'string') {
+			return res.status(400).json({ error: 'Prompt must be a string.' });
+		}
+
+		const prompt = cleanString(promptRaw);
+
+		if (prompt.length < PROMPT_MIN || prompt.length > PROMPT_MAX) {
+			return res.status(400).json({ error: `Prompt must be ${PROMPT_MIN}-${PROMPT_MAX} characters.` });
+		}
 
 		const payload = {
 			prompt,
@@ -37,17 +48,14 @@ dalleRoutes.route('/').post(async (req, res) => {
 			const base64Image = Buffer.from(response.data).toString('base64');
 			res.status(200).json({ photo: base64Image });
 		} else {
-			throw new Error(`${response.status}: ${response.data.toString()}`);
+			throw new Error(`${response.status}`);
 		}
 	} catch (error) {
-		console.error('Error status:', error?.response?.status); // e.g., 400
-		console.error('Error headers:', error?.response?.headers); // optional
-		console.error('Error data:', error?.response?.data); // 🔍 the most useful part
-		console.error('Fallback error message:', error.message); // backup if .response is undefined
-
+		console.error('dalle generate error:', error?.response?.status || error.message);
 		res.status(500).json({
-			error: error?.response?.data?.error?.message || error.message || 'Unknown error',
+			error: 'Image generation failed. Try a different prompt.',
 		});
 	}
 });
+
 export default dalleRoutes;

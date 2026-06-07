@@ -1,8 +1,7 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { PageLoadingScreen } from './components';
-import { AppState } from './contexts/AppState';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
@@ -28,15 +27,6 @@ const backendDomains = {
 const currentBackendDomain = import.meta.env.VITE_VERCEL_DOMAIN;
 
 const App = () => {
-	const { state, dispatch: ctxDispatch } = useContext(AppState);
-	const { userInfo } = state;
-
-	const signoutHandler = () => {
-		ctxDispatch({ type: 'USER_SIGNOUT' });
-		localStorage.removeItem('userInfo');
-		window.location.href = '/signin';
-	};
-
 	return (
 		<BrowserRouter>
 			<ToastContainer position='bottom-center' limit={1} />
@@ -49,18 +39,6 @@ const App = () => {
 					</Link>
 				</div>
 				<div className='flex justify-between'>
-					{userInfo ? (
-						<Link to='#signout' className='text-black px-4 mx-6 py-2 whitespace-nowrap' onClick={signoutHandler}>
-							{' '}
-							Sign Out{' '}
-						</Link>
-					) : (
-						<Link to='/signin' className='text-black px-4 mx-6 py-2 whitespace-nowrap'>
-							{' '}
-							Sign In{' '}
-						</Link>
-					)}
-
 					<Link to='/create-post' className='front-medium bg-[#6469ff] text-white px-4 py-2 rounded-md'>
 						Create
 					</Link>

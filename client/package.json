@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "predev": "node ../../scripts/free-port.mjs 3900 && node scripts/print-dev-urls.mjs",
+    "dev": "vite --port 3900",
     "build": "vite build",
     "preview": "vite preview"
   },

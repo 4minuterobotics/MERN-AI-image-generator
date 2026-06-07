@@ -80,9 +80,8 @@ const Home = (props) => {
 					<div>
 						<h1 className='font-extrabold text-[#222328] text-[32px]'>Image Generation Made Easy</h1>
 						<p className='mt-2 text-[#666e75] text-[16px] max-w-[500px]'>
-							In loving memory of my little brother Drew, this website offers the ability to turn a prompt into an image. Take a look at some images people have made by
-							sending creative prompts to APIs from DALL-E AI. If you'd like to create an image, sign in or create an account if you don't have one, then navigate to the
-							"Create" page using the button to the right. From there, enter your name, a prompt, click generate and wa-la!
+							In loving memory of my little brother Drew, this site turns a prompt into an image. Take a look at what people have made, or click "Create" at the top right
+							to make your own &mdash; enter your name and a prompt, hit generate, and share it with the community. No account needed.
 						</p>
 					</div>
 					<div className='mt-16'>

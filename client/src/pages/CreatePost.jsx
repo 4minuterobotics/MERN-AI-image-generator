@@ -1,11 +1,14 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Helmet } from 'react-helmet-async';
-import { AppState } from '../contexts/AppState';
 import { preview } from '../assets';
 import { getRandomPrompt } from '../utils';
 import { FormField, Loader, PageAnimation } from '../components';
+
+const PROMPT_MAX = 500;
+const NAME_MAX = 100;
+
 const CreatePost = (props) => {
 	const navigate = useNavigate(); // this will allow us to navigate back to the home page one the post is created
 	const [form, setForm] = useState({
@@ -15,9 +18,6 @@ const CreatePost = (props) => {
 	});
 	const [generatingImg, setGeneratingImg] = useState(false); // will be used while making contact with the api and waiting to get the image back
 	const [loading, setLoading] = useState(false);
-
-	const { state, dispatch: ctxDispatch } = useContext(AppState);
-	const { userInfo } = state;
 
 	//function that sends prompt to back end
 	const generateImage = async () => {
@@ -41,6 +41,15 @@ const CreatePost = (props) => {
 
 				//parse the photo data from the backend set the data received back from the post to equal "data"
 				const data = await response.json();
+
+				if (response.status === 429) {
+					toast.error(data?.error || 'Too many generations. Try again later.');
+					return;
+				}
+				if (!response.ok || !data?.photo) {
+					toast.error(data?.error || 'Try a different prompt.');
+					return;
+				}
 
 				//update the form on the page, which is a state changing function. This will cause the generated picture to render!
 				setForm({ ...form, photo: `data:image/jpeg;base64,${data.photo}` });
@@ -88,20 +97,14 @@ const CreatePost = (props) => {
 
 	//sends data from the form on the front end to the back end
 	const handleChange = (e) => {
-		setForm({ ...form, [e.target.name]: e.target.value });
+		const { name, value } = e.target;
+		const cap = name === 'prompt' ? PROMPT_MAX : name === 'name' ? NAME_MAX : value.length;
+		setForm({ ...form, [name]: value.slice(0, cap) });
 	};
 
 	const handleSurpriseMe = () => {
 		const randomPrompt = getRandomPrompt(form.prompt);
 		setForm({ ...form, prompt: randomPrompt });
-	};
-
-	const imageGeneratorHandler = () => {
-		if (userInfo) {
-			generateImage();
-		} else {
-			navigate('/signin');
-		}
 	};
 	return (
 		<>
@@ -155,7 +158,7 @@ const CreatePost = (props) => {
 						{/* this button is always visible, either saying generating... or generate. It sends the prompt to 
 						dalle on the back end. */}
 						<div className='mt-5 flex gap-5'>
-							<button type='button' onClick={imageGeneratorHandler} className='text-white bg-green-700 font-md rounded-md text-sm w-full sm:w-auto px-5 py-2.5 text-center'>
+							<button type='button' onClick={generateImage} className='text-white bg-green-700 font-md rounded-md text-sm w-full sm:w-auto px-5 py-2.5 text-center'>
 								{generatingImg ? 'Generating...' : 'Generate'}
 							</button>
 						</div>
