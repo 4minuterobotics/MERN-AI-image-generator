@@ -6,7 +6,6 @@ import helmet from 'helmet';
 import connectDB from './mongodb/connect.js';
 import postRoutes from './routes/postRoutes.js';
 import dalleRoutes from './routes/dalleRoutes.js';
-import userRoutes from './routes/userRoutes.js';
 import { sanitizeMongoMiddleware, globalLimiter } from './middleware/security.js';
 
 dotenv.config();
@@ -17,18 +16,16 @@ const app = express();
 // X-Forwarded-For to see the real client IP. Trust 1 hop only.
 app.set('trust proxy', 1);
 
-// CORS: only the deployed client + local dev. Anything else is denied.
 const ALLOWED_ORIGINS = [
 	'https://drew-it.vercel.app',
 	'http://localhost:5173', // vite default
 	'http://localhost:3900', // ClaudeBuilt convention
-	process.env.EXTRA_ALLOWED_ORIGIN, // escape hatch for previews/staging
+	process.env.EXTRA_ALLOWED_ORIGIN,
 ].filter(Boolean);
 
 app.use(
 	cors({
 		origin: (origin, cb) => {
-			// Allow same-origin / curl / server-to-server (no Origin header).
 			if (!origin) return cb(null, true);
 			if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
 			return cb(new Error('Not allowed by CORS'));
@@ -38,23 +35,27 @@ app.use(
 
 app.use(helmet());
 
-// 12 MB is enough for a base64-encoded ~9 MB image. Previously 50 MB which
-// invited large-body DoS.
 app.use(express.json({ limit: '12mb' }));
 app.use(express.urlencoded({ extended: true, limit: '12mb' }));
 
-// Strip MongoDB operator keys from every request body / params / query.
 app.use(sanitizeMongoMiddleware);
 
-// Loose global cap on top of the stricter per-route limits.
 app.use(globalLimiter);
 
 app.use('/api/v1/post', postRoutes);
 app.use('/api/v1/dalle', dalleRoutes);
-app.use('/api/v1/user', userRoutes);
 
 app.get('/', async (req, res) => {
 	res.send('Hello from DALL-E');
+});
+
+// Final error handler: log server-side, return a generic 500 to the client.
+// Without this, Express's default handler leaks stack traces in responses.
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+	console.error('unhandled error:', err?.message || err);
+	if (res.headersSent) return;
+	res.status(500).json({ error: 'Internal server error.' });
 });
 
 const PORT = process.env.PORT || 8081;

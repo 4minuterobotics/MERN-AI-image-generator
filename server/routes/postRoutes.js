@@ -11,20 +11,32 @@ const postRoutes = express.Router();
 
 const NAME_MAX = 100;
 const PROMPT_MAX = 500;
-const PHOTO_MAX_BYTES = 11_000_000; // ~8 MB image after base64 inflation; matches 12mb body limit with headroom
+const PHOTO_MAX_BYTES = 11_000_000; // ~8 MB raw image after base64 inflation
+const PAGE_LIMIT_DEFAULT = 50;
+const PAGE_LIMIT_MAX = 100;
+
+const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
 
 cloudinary.config({
-	cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+	cloud_name: CLOUD_NAME,
 	api_key: process.env.CLOUDINARY_API_KEY,
 	api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// GET /api/v1/post?limit=50&skip=0 — newest first, paginated.
 postRoutes.route('/').get(async (req, res) => {
 	try {
-		const posts = await Post.find({});
-		res.status(200).json({ success: true, data: posts });
+		const limitRaw = parseInt(req.query.limit, 10);
+		const skipRaw = parseInt(req.query.skip, 10);
+		const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? Math.min(limitRaw, PAGE_LIMIT_MAX) : PAGE_LIMIT_DEFAULT;
+		const skip = Number.isFinite(skipRaw) && skipRaw >= 0 ? skipRaw : 0;
+
+		const posts = await Post.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit);
+
+		res.status(200).json({ success: true, data: posts, limit, skip });
 	} catch (error) {
-		res.status(500).json({ success: false, message: 'Failed to load posts.' });
+		console.error('post list error:', error?.message);
+		res.status(500).json({ success: false, error: 'Failed to load posts.' });
 	}
 });
 
@@ -47,11 +59,23 @@ postRoutes.route('/').post(postLimiter, async (req, res) => {
 			return res.status(400).json({ success: false, error: 'Photo too large.' });
 		}
 
-		const photoUrl = await cloudinary.uploader.upload(photo);
+		if (!CLOUD_NAME) {
+			console.error('post create: CLOUDINARY_CLOUD_NAME env var is missing');
+			return res.status(503).json({ success: false, error: 'Image storage is not configured.' });
+		}
+
+		// Cloudinary-side enforcement: refuse anything that's not a recognized
+		// image format. Defends against polyglot uploads that get past the
+		// `data:image/` prefix check on our side.
+		const photoUrl = await cloudinary.uploader.upload(photo, {
+			resource_type: 'image',
+			allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+		});
+
 		const newPost = await Post.create({
 			name,
 			prompt,
-			photo: `http://res.cloudinary.com/doj10wtzk/image/upload/t_drew-it-optimization/${photoUrl.public_id}.png`,
+			photo: `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/t_drew-it-optimization/${photoUrl.public_id}.png`,
 		});
 
 		res.status(201).json({ success: true, data: newPost });
