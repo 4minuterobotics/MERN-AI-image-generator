@@ -16,7 +16,24 @@ dalleRoutes.route('/').get((req, res) => {
 	res.send('Hello from dalle!');
 });
 
+// Map Stability AI upstream status codes to user-friendly messages.
+const UPSTREAM_ERROR_MESSAGES = {
+	400: 'Prompt was rejected. Try rephrasing.',
+	401: 'Image service authentication failed.',
+	402: 'Image service is over its billing limit. Try again later.',
+	403: 'Prompt was blocked by content moderation. Try a different one.',
+	413: 'Prompt is too large.',
+	429: 'Image service is busy. Try again in a moment.',
+	500: 'Image service had an internal error. Try again.',
+	503: 'Image service is temporarily unavailable.',
+};
+
 dalleRoutes.route('/').post(generateLimiter, async (req, res) => {
+	if (!process.env.STABILITY_API_KEY) {
+		console.error('dalle: STABILITY_API_KEY env var is missing');
+		return res.status(503).json({ error: 'Image generation is not configured.', upstreamStatus: 0 });
+	}
+
 	try {
 		const promptRaw = req.body?.prompt;
 
@@ -46,14 +63,26 @@ dalleRoutes.route('/').post(generateLimiter, async (req, res) => {
 
 		if (response.status === 200) {
 			const base64Image = Buffer.from(response.data).toString('base64');
-			res.status(200).json({ photo: base64Image });
-		} else {
-			throw new Error(`${response.status}`);
+			return res.status(200).json({ photo: base64Image });
 		}
+
+		// Non-200 from Stability. Try to surface what they actually said.
+		let upstreamBody = '';
+		try {
+			upstreamBody = Buffer.from(response.data).toString('utf8').slice(0, 500);
+		} catch (_) {}
+
+		console.error('stability upstream non-200:', response.status, upstreamBody);
+
+		const clientMessage = UPSTREAM_ERROR_MESSAGES[response.status] || 'Image generation failed. Try a different prompt.';
+		return res.status(502).json({
+			error: clientMessage,
+			upstreamStatus: response.status,
+		});
 	} catch (error) {
-		console.error('dalle generate error:', error?.response?.status || error.message);
-		res.status(500).json({
-			error: 'Image generation failed. Try a different prompt.',
+		console.error('dalle generate error:', error?.message);
+		return res.status(500).json({
+			error: 'Image generation failed unexpectedly.',
 		});
 	}
 });
